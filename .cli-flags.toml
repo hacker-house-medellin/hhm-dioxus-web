@@ -1,0 +1,16 @@
+# Canonical flags-2-env boundary for hhm-dioxus-web.
+# Browser/session credentials remain outside argv; this file defines the typed public config boundary.
+
+[identity]
+service = "hhm-dioxus-web"
+type_name = "WebEnv"
+
+[help]
+url = "https://github.com/flags-2-env/flags-2-env"
+
+[parse]
+allow_unknown = false
+
+[env]
+load = false
+files = []
