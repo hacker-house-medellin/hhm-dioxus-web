@@ -67,7 +67,10 @@ async fn ws(upgrade: WebSocketUpgrade) -> impl IntoResponse {
 }
 
 fn bounded_ack(text: &str) -> Option<String> {
-    (text.len() <= MAX_WS_TEXT_BYTES).then(|| format!("ack:{text}"))
+    text.len()
+        .checked_add("ack:".len())
+        .filter(|length| *length <= MAX_WS_TEXT_BYTES)
+        .map(|_| format!("ack:{text}"))
 }
 
 async fn handle_ws(mut socket: WebSocket) {
@@ -100,8 +103,9 @@ mod tests {
     #[test]
     fn websocket_ack_is_bounded_in_utf8_bytes() {
         assert_eq!(bounded_ack("hello"), Some("ack:hello".to_string()));
-        assert!(bounded_ack(&"x".repeat(MAX_WS_TEXT_BYTES)).is_some());
-        assert!(bounded_ack(&"x".repeat(MAX_WS_TEXT_BYTES + 1)).is_none());
+        assert!(bounded_ack(&"x".repeat(MAX_WS_TEXT_BYTES - 4)).is_some());
+        assert!(bounded_ack(&"x".repeat(MAX_WS_TEXT_BYTES - 3)).is_none());
+        assert!(bounded_ack(&"é".repeat((MAX_WS_TEXT_BYTES - 4) / 2)).is_some());
         assert!(bounded_ack(&"é".repeat((MAX_WS_TEXT_BYTES / 2) + 1)).is_none());
     }
 }
